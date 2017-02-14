@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="appModule">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.css">
+    <style>
+        [ng-cloak]{display: none}
+    </style>
+</head>
+<body ng-controller="bookCtrl">
+<table class="table table-responsive table-hover" ng-cloak>
+    <tr class="text-primary">
+        <th>书的名称</th>
+        <th>书的价格</th>
+        <th>书的数量</th>
+        <th>小计</th>
+        <th>操作</th>
+    </tr>
+    <tr ng-repeat="b in books track by $index" >
+        <td >{{b.name}}</td>
+        <td >{{b.price}}</td>
+        <td ><input type="text" ng-model="b.count"></td>
+        <td>{{b.price*b.count}}</td>
+        <td>
+            <button class="btn btn-danger" ng-click="remove(b)">删除</button>                   <button type="button" class="btn btn-warning" data-toggle="modal" data-target=".modal" ng-click="update(b)">
+                修改
+            </button>
+        </td>
+    </tr>
+    <tr ng-hide="books.length">
+        <td colspan="5" class="text-center text-muted">暂无数据...</td>
+    </tr>
+</table>
+
+
+<div class="modal fade"> <!--灰层-->
+    <div class="modal-dialog"> <!--弹框-->
+        <div class="modal-content">
+            <!--内容区 分为 头体尾巴-->
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&timesb;</span>
+                    <span class="sr-only">关闭</span>
+                </button>
+                <h4 class="modal-title">请修改</h4>
+            </div>
+            <div class="modal-body">
+                书名<input type="text" ng-model="name"/>
+                书的价格 <input type="text" ng-model="price">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" ng-click="save()" data-dismiss="modal">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="node_modules/angular/angular.js"></script>
+<script src="node_modules/angular-resource/angular-resource.js"></script>
+<script src="node_modules/jquery/dist/jquery.js"></script>
+<script src="node_modules/bootstrap/dist/js/bootstrap.js"></script>
+<script>
+    var app = angular.module('appModule',['ngResource']);
+    // /books  /books/120
+    app.factory('Books',function ($resource) {
+        return $resource('/books/:bid',null,{
+            update:{method:'put'}//get query delete save update
+        });
+    });
+    app.controller('bookCtrl',['$scope','Books',function ($scope,Books) {
+        //查询所有
+        $scope.books = Books.query();// /books get
+        //删除某个书
+        $scope.remove = function (book) {
+            //Books.delete({bid:book.id});//删除了后端的数据，要更新前端数据，如果前端数据更新则视图会刷新,确保后台删除成功后删除前端数据
+            Books.delete({bid:book.id}).$promise.then(function () {
+                //删除成功后的逻辑
+                //不要再次去查询会浪费一次http请求
+                $scope.books = $scope.books.filter(function (item) {
+                    return item != book
+                });
+            })
+        };
+        $scope.now = -1; //当我点击修改时，存储当前选择的是哪一个
+        $scope.update = function (b) { //点击按钮将数据传入到modal框里
+            //b是当前点击的数据  放到输入框中
+            $scope.name = b.name;
+            $scope.price = b.price;
+            $scope.now = b.id;
+        };
+        $scope.save = function () { //点击框中的按钮保存
+            Books.update({bid:$scope.now},{name:$scope.name,price:$scope.price}).$promise.then(function (data) {//获取的是修改后的数据
+                //{id,name,count,price}
+                $scope.books = $scope.books.map(function (item,index) {
+                    if(item.id == data.id){
+                        return data;
+                    }
+                    return item;
+                });
+            })
+        }
+    }]);
+
+</script>
+</body>
+</html>

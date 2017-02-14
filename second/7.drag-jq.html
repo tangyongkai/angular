@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en" ng-app="appModule">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <style>
+        div{position: absolute;top: 0;left: 0;width: 100px;height: 100px;background: red}
+        div+div{background: red}
+    </style>
+</head>
+<body>
+<div drag></div>
+<div drag></div>
+<script src="node_modules/jquery/dist/jquery.js"></script>
+<script src="node_modules/angular/angular.js"></script>
+<script>
+    var app = angular.module('appModule',[]);
+    app.directive('drag',function () {
+        return {
+            restrict:'A',
+            link:function (scope,element,attrs) {
+                $(element).on('mousedown',function (e) {
+                    var disX = e.pageX - $(this).offset().left;
+                    var disY = e.pageY - $(this).offset().top;
+                    $(document).on('mousemove',function (e) {
+                        $(element).css({
+                            left:e.pageX-disX,
+                            top:e.pageY - disY
+                        });
+                    });
+                    $(document).on('mouseup',function () {
+                       $(document).off();
+                    });
+                    e.preventDefault();
+                });
+            }
+        }
+    });
+</script>
+</body>
+</html>

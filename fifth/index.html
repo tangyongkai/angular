@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="appModule">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.css">
+</head>
+<body ng-controller="myCtrl">
+{{timer | date:'yy-MM-dd hh:mm:ss'}}
+<script src="node_modules/angular/angular.js"></script>
+<script>
+    var app = angular.module('appModule',[]);
+    app.controller('myCtrl',function ($scope,$http,$interval) {
+        //post是将数据放到请求体中，传到服务端
+        $http.post('/post',{name:'zfpx',age:8}).then(function (res) {
+            $scope.timer = res.data;
+        });
+    });
+</script>
+</body>
+</html>
